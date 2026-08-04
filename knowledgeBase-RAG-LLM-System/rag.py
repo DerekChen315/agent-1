@@ -3,25 +3,32 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough, RunnableWithMessageHistory, RunnableLambda
 from file_history_store import get_history
 from vector_stores import VectorStoreService
-from langchain_community.embeddings import DashScopeEmbeddings
+# ===================== 改动 1：换用 OpenAI 兼容接口 =====================
+from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+# ===================== 删掉下面的 import =====================
+# from langchain_community.embeddings import DashScopeEmbeddings
+# from langchain_community.chat_models.tongyi import ChatTongyi
 import config_data as config
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_community.chat_models.tongyi import ChatTongyi
 
 
 def print_prompt(prompt):
-    print("="*20)
+    print("=" * 20)
     print(prompt.to_string())
-    print("="*20)
-
+    print("=" * 20)
     return prompt
 
 
 class RagService(object):
     def __init__(self):
 
+        # ===================== 改动 2：用 OpenAIEmbeddings 指向阿里云 =====================
         self.vector_service = VectorStoreService(
-            embedding=DashScopeEmbeddings(model=config.embedding_model_name)
+            embedding=OpenAIEmbeddings(
+                model=config.embedding_model_name,
+                openai_api_key=config.dashscope_api_key,
+                openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1"
+            )
         )
 
         self.prompt_template = ChatPromptTemplate.from_messages(
@@ -34,7 +41,12 @@ class RagService(object):
             ]
         )
 
-        self.chat_model = ChatTongyi(model=config.chat_model_name)
+        # ===================== 改动 3：用 ChatOpenAI 指向阿里云 =====================
+        self.chat_model = ChatOpenAI(
+            model=config.chat_model_name,
+            openai_api_key=config.dashscope_api_key,
+            openai_api_base="https://dashscope.aliyuncs.com/compatible-mode/v1"
+        )
 
         self.chain = self.__get_chain()
 
@@ -53,8 +65,7 @@ class RagService(object):
 
             return formatted_str
 
-        def format_for_retriever(value: dict)->str:
-
+        def format_for_retriever(value: dict) -> str:
             return value["input"]
 
         def format_for_prompt_template(value):
@@ -65,15 +76,19 @@ class RagService(object):
             new_value["history"] = value["input"]["history"]
             return new_value
 
-
         chain = (
             {
                 "input": RunnablePassthrough(),
                 "context": RunnableLambda(format_for_retriever) | retriever | format_document
-            }| RunnableLambda(format_for_prompt_template) |self.prompt_template | print_prompt |self.chat_model | StrOutputParser()
+            }
+            | RunnableLambda(format_for_prompt_template)
+            | self.prompt_template
+            | print_prompt
+            | self.chat_model
+            | StrOutputParser()
         )
 
-        conversation_chain = RunnableWithMessageHistory(       # 增强的链
+        conversation_chain = RunnableWithMessageHistory(
             chain,
             get_history,
             input_messages_key="input",
@@ -85,10 +100,10 @@ class RagService(object):
 
 if __name__ == '__main__':
     # session id 配置
-    session_config ={
-        "configurable":{
-            "session_id":"user_001",
+    session_config = {
+        "configurable": {
+            "session_id": "user_001",
         }
     }
-    res = RagService().chain.invoke({"input":"我之前问了什么"},session_config)
+    res = RagService().chain.invoke({"input": "我之前问了什么"}, session_config)
     print(res)
