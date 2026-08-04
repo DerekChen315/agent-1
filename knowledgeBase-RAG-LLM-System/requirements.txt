@@ -1,36 +1,22 @@
-# Web 界面
-streamlit
-python-multipart
-
-# LangChain 核心
-langchain
-langchain-core
-langchain-community
-langchain-chroma
-langchain-text-splitters
-
-# 向量数据库
-chromadb
-numpy
-
-# 阿里云通义千问
-dashscope
-aiohttp
-requests
-urllib3
-
-# 数据校验与工具
-pydantic
-tiktoken
-python-dotenv
-pycryptodome
-
-# 可选功能
-pillow
-tqdm
-pypdf
-python-docx
-openpyxl
-markdown
-anyio
-loguru
+streamlit==1.35.0
+langchain==0.1.20
+langchain-core==0.1.52
+langchain-community==0.0.38
+langchain-text-splitters==0.0.2
+chromadb==0.4.24
+dashscope==1.20.0
+numpy==1.26.4
+pydantic==1.10.13
+pydantic-core==2.18.4
+tiktoken==0.6.0
+python-dotenv==1.0.0
+python-multipart==0.0.9
+aiohttp==3.9.0
+requests==2.31.0
+urllib3==2.0.7
+pycryptodome==3.20.0
+pillow==10.2.0
+tqdm==4.66.0
+pypdf==4.0.0
+anyio==4.2.0
+loguru==0.7.2
