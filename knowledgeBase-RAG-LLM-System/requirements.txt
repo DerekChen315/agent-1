@@ -4,7 +4,7 @@ langchain-core==0.1.52
 langchain-community==0.0.38
 langchain-text-splitters==0.0.2
 chromadb==0.4.24
-dashscope==1.20.0
+dashscope==1.14.1
 numpy==1.26.4
 pydantic==1.10.13
 pydantic-core==2.18.4
